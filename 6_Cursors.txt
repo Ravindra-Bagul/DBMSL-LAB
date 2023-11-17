@@ -1,0 +1,50 @@
+create table O_RollCall (rn int,name varchar(25),marks int)
+desc O_RollCall
+
+insert into O_RollCall values(1,'AAA',38)
+insert into O_RollCall values(3,'CCC',45)
+insert into O_RollCall values(5,'EEE',41)
+insert into O_RollCall values(7,'GGG',36)
+
+SELECT * FROM O_RollCall
+
+create table N_RollCall (rn int,name varchar(25),marks int)
+desc O_RollCall
+
+insert into N_RollCall values(2,'BBB',43)
+insert into N_RollCall values(4,'DDD',44)
+insert into N_RollCall values(6,'FFF',41)
+insert into N_RollCall values(8,'HHH',49)
+
+SELECT * FROM N_RollCall
+
+BEGIN  
+    update O_RollCall SET marks = 40 WHERE (marks between 35 AND 39); 
+    IF sql%NOTFOUND THEN 
+    	dbms_output.put_line('No Record Found'); 
+    ELSE 
+  		dbms_output.put_line(sql%ROWCOUNT || ' Record Found'); 
+    END IF; 
+END;
+
+SELECT * FROM O_RollCall
+
+DECLARE 
+    Cursor Cur_O IS select * from O_RollCall; 
+    Cursor Cur_N(rn_o int) IS select * from N_RollCall where rn = rn_o; 
+    s_rec N_RollCall%rowtype; 
+ 
+
+BEGIN    
+    for s_rec in Cur_O LOOP       
+        OPEN Cur_N(s_rec.rn); 
+    	fetch Cur_N into s_rec; 
+ 
+        IF Cur_N%NOTFOUND THEN 
+      	  INSERT INTO N_RollCall values(s_rec.rn, s_rec.name, s_rec.marks); 
+        END IF; 
+        CLOSE Cur_N;   
+    END LOOP; 
+END;
+
+SELECT * FROM N_RollCall order by(rn)

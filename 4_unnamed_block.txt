@@ -1,0 +1,49 @@
+create table borrower(Roll_no int primary key,name varchar(50),Date_of_Issue date,Name_of_Book varchar(50),Status varchar(10));
+desc borrower;
+
+create table Fine(Roll_no int,Date_f date,Amt float,foreign key(Roll_no) references borrower(Roll_no));
+Desc Fine;
+
+insert into borrower values(1,'Ravindra','10-FEB-2023','TOC','I');
+
+insert into borrower values(2,'Abhishek','01-JUNE-2023','DBMS','I');
+
+insert into borrower values(3,'Shardul','01-JULY-2023','DBMS','I');
+
+declare
+rno int:=7;
+Fine_amt float:=0;
+DOI date;
+No_of_Days int;
+book_name varchar2(50):='TOC';
+R_no exception;
+
+begin
+if rno <=0 THEN
+    RAISE R_no;
+    END IF;
+
+select Date_of_Issue into DOI from borrower where Roll_no=rno;
+No_of_Days := sysdate - DOI;
+
+if (No_of_Days > 15 and No_of_Days<30) THEN
+Fine_amt:=No_of_Days*5;
+
+elsif no_of_days>30 THEN
+Fine_amt:=(15*5)+(No_of_Days-30)*50;
+end if;
+
+update borrower set status='R' where Roll_no=rno;
+
+if (Fine_amt>0) then
+insert into Fine values(rno,sysdate,Fine_amt);
+end if;
+
+exception
+when R_no then dbms_output.put_line('Roll No can not be less than 0');
+when no_data_found then dbms_output.put_line('Invalid Roll No');
+when others then dbms_output.put_line('Other Exception');
+end;
+ 
+select * from Fine;
+select * from borrower;

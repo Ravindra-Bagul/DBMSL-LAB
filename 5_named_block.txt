@@ -1,0 +1,292 @@
+
+#Create Database and Tables.
+
+	mysql> create database students;
+	Query OK, 1 row affected (0.00 sec)
+
+	mysql> use students;
+	Database changed
+	mysql>
+	mysql> create table Stud_marks(name varchar(25),total_marks int);
+	Query OK, 0 rows affected (0.01 sec)
+
+	mysql> create table Result(Roll int, name varchar(25),class varchar(25));
+	Query OK, 0 rows affected (0.01 sec)
+
+	mysql> desc Stud_marks;
+	+-------------+-------------+------+-----+---------+-------+
+	| Field       | Type        | Null | Key | Default | Extra |
+	+-------------+-------------+------+-----+---------+-------+
+	| name        | varchar(25) | YES  |     | NULL    |       |
+	| total_marks | int         | YES  |     | NULL    |       |
+	+-------------+-------------+------+-----+---------+-------+
+	2 rows in set (0.00 sec)
+
+	mysql> desc Result;
+	+-------+-------------+------+-----+---------+-------+
+	| Field | Type        | Null | Key | Default | Extra |
+	+-------+-------------+------+-----+---------+-------+
+	| Roll  | int         | YES  |     | NULL    |       |
+	| name  | varchar(25) | YES  |     | NULL    |       |
+	| class | varchar(25) | YES  |     | NULL    |       |
+	+-------+-------------+------+-----+---------+-------+
+	3 rows in set (0.00 sec)
+
+
+#Write a function which will return the total students in a given class.
+
+	mysql> delimiter //
+	mysql> create function total_count()
+		-> RETURNS int
+		-> DETERMINISTIC
+		-> BEGIN
+		-> declare a int;
+		-> select count(Roll) into a from Result;
+		-> RETURN a;
+		-> END;
+		-> //
+	Query OK, 0 rows affected (0.00 sec)
+
+#Write a PL/SQL block to use the procedure created with the above requirement. Insert the data in both the tables by calling the above procedure.
+
+	mysql> create procedure proc_grade(in roll int, in name varchar(25), in marks int)
+		-> begin
+		-> declare class varchar(25);
+		-> if (marks <= 1500 and marks >= 990) then
+		->  set class = 'Distinction';
+		-> elseif (marks <= 989 and marks >= 900) then
+		->  set class = 'First_Class';
+		-> elseif(marks <= 899 and marks >= 825) then
+		->  set class = 'Second_Class';
+		-> elseif(marks < 825) then
+		->  set class = 'Fail';
+		-> end if;
+		-> select class;
+		-> insert into Stud_marks values(name,marks);
+		-> insert into Result values(roll,name,class);
+		-> select * from  Stud_marks;
+		-> select * from  Result;
+		-> select total_count();
+		-> end;
+		-> //
+	Query OK, 0 rows affected (0.01 sec)
+	
+#Execution :
+
+	mysql> call proc_grade(1,'Ravi',1400);
+		-> //
+	+-------------+
+	| class       |
+	+-------------+
+	| Distinction |
+	+-------------+
+	1 row in set (0.00 sec)
+
+	+------+-------------+
+	| name | total_marks |
+	+------+-------------+
+	| Ravi |        1400 |
+	+------+-------------+
+	1 row in set (0.01 sec)
+
+	+------+------+-------------+
+	| Roll | name | class       |
+	+------+------+-------------+
+	|    1 | Ravi | Distinction |
+	+------+------+-------------+
+	1 row in set (0.01 sec)
+
+	+---------------+
+	| total_count() |
+	+---------------+
+	|             1 |
+	+---------------+
+	1 row in set (0.01 sec)
+
+	Query OK, 0 rows affected (0.01 sec)
+
+	mysql> call proc_grade(2,'Abhi',1300);
+		-> //
+	+-------------+
+	| class       |
+	+-------------+
+	| Distinction |
+	+-------------+
+	1 row in set (0.00 sec)
+
+	+------+-------------+
+	| name | total_marks |
+	+------+-------------+
+	| Ravi |        1400 |
+	| Abhi |        1300 |
+	+------+-------------+
+	2 rows in set (0.01 sec)
+
+	+------+------+-------------+
+	| Roll | name | class       |
+	+------+------+-------------+
+	|    1 | Ravi | Distinction |
+	|    2 | Abhi | Distinction |
+	+------+------+-------------+
+	2 rows in set (0.01 sec)
+
+	+---------------+
+	| total_count() |
+	+---------------+
+	|             2 |
+	+---------------+
+	1 row in set (0.01 sec)
+
+	Query OK, 0 rows affected (0.01 sec)
+
+	mysql> call proc_grade(3,'Pawan',950);
+		-> //
+	+-------------+
+	| class       |
+	+-------------+
+	| First_Class |
+	+-------------+
+	1 row in set (0.00 sec)
+
+	+-------+-------------+
+	| name  | total_marks |
+	+-------+-------------+
+	| Ravi  |        1400 |
+	| Abhi  |        1300 |
+	| Pawan |         950 |
+	+-------+-------------+
+	3 rows in set (0.01 sec)
+
+	+------+-------+-------------+
+	| Roll | name  | class       |
+	+------+-------+-------------+
+	|    1 | Ravi  | Distinction |
+	|    2 | Abhi  | Distinction |
+	|    3 | Pawan | First_Class |
+	+------+-------+-------------+
+	3 rows in set (0.01 sec)
+
+	+---------------+
+	| total_count() |
+	+---------------+
+	|             3 |
+	+---------------+
+	1 row in set (0.01 sec)
+
+	Query OK, 0 rows affected (0.01 sec)
+
+	mysql> call proc_grade(4,'Bhavik',850);
+		-> //
+	+--------------+
+	| class        |
+	+--------------+
+	| Second_Class |
+	+--------------+
+	1 row in set (0.00 sec)
+
+	+--------+-------------+
+	| name   | total_marks |
+	+--------+-------------+
+	| Ravi   |        1400 |
+	| Abhi   |        1300 |
+	| Pawan  |         950 |
+	| Bhavik |         850 |
+	+--------+-------------+
+	4 rows in set (0.01 sec)
+
+	+------+--------+--------------+
+	| Roll | name   | class        |
+	+------+--------+--------------+
+	|    1 | Ravi   | Distinction  |
+	|    2 | Abhi   | Distinction  |
+	|    3 | Pawan  | First_Class  |
+	|    4 | Bhavik | Second_Class |
+	+------+--------+--------------+
+	4 rows in set (0.01 sec)
+
+	+---------------+
+	| total_count() |
+	+---------------+
+	|             4 |
+	+---------------+
+	1 row in set (0.01 sec)
+
+	Query OK, 0 rows affected (0.02 sec)
+
+	mysql> call proc_grade(5,'Sam',750);
+		-> //
+	+-------+
+	| class |
+	+-------+
+	| Fail  |
+	+-------+
+	1 row in set (0.00 sec)
+
+	+--------+-------------+
+	| name   | total_marks |
+	+--------+-------------+
+	| Ravi   |        1400 |
+	| Abhi   |        1300 |
+	| Pawan  |         950 |
+	| Bhavik |         850 |
+	| Sam    |         750 |
+	+--------+-------------+
+	5 rows in set (0.01 sec)
+
+	+------+--------+--------------+
+	| Roll | name   | class        |
+	+------+--------+--------------+
+	|    1 | Ravi   | Distinction  |
+	|    2 | Abhi   | Distinction  |
+	|    3 | Pawan  | First_Class  |
+	|    4 | Bhavik | Second_Class |
+	|    5 | Sam    | Fail         |
+	+------+--------+--------------+
+	5 rows in set (0.01 sec)
+
+	+---------------+
+	| total_count() |
+	+---------------+
+	|             5 |
+	+---------------+
+	1 row in set (0.02 sec)
+
+	Query OK, 0 rows affected (0.02 sec)
+
+
+
+
+delimiter //
+create function total_count()
+RETURNS int
+DETERMINISTIC
+BEGIN
+declare a int;
+select count(Roll) into a from Result;
+RETURN a;
+END;
+//
+
+
+
+
+create procedure proc_grade(in roll int, in name varchar(25), in marks int)
+begin
+declare class varchar(25);
+if (marks <= 1500 and marks >= 990) then
+set class = 'Distinction';
+elseif (marks <= 989 and marks >= 900) then
+set class = 'First_Class';
+elseif(marks <= 899 and marks >= 825) then
+set class = 'Second_Class';
+elseif(marks < 825) then
+set class = 'Fail';
+end if;
+select class;
+insert into Stud_marks values(name,marks);
+insert into Result values(roll,name,class);
+select * from  Stud_marks;
+select * from  Result;
+select total_count();
+end;
+//

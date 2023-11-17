@@ -1,0 +1,136 @@
+#Data:
+
+	> db.orders.find().pretty()
+	{
+		"_id" : 1,
+		"cust_id" : "A1",
+		"DOR" : ISODate("2023-01-05T00:00:00Z"),
+		"price" : 250,
+		"items" : [
+			{
+				"sku" : "oranges",
+				"qty" : 5,
+				"price" : 10
+			},
+			{
+				"sku" : "apples",
+				"qty" : 5,
+				"price" : 10
+			}
+		],
+		"status" : "P"
+	}
+	{
+		"_id" : 2,
+		"cust_id" : "A2",
+		"DOR" : ISODate("2023-01-20T00:00:00Z"),
+		"price" : 500,
+		"items" : [
+			{
+				"sku" : "oranges",
+				"qty" : 10,
+				"price" : 10
+			},
+			{
+				"sku" : "apples",
+				"qty" : 10,
+				"price" : 10
+			}
+		],
+		"status" : "P"
+	}
+	{
+		"_id" : 3,
+		"cust_id" : "A3",
+		"DOR" : ISODate("2023-01-25T00:00:00Z"),
+		"price" : 500,
+		"items" : [
+			{
+				"sku" : "oranges",
+				"qty" : 10,
+				"price" : 10
+			},
+			{
+				"sku" : "apples",
+				"qty" : 10,
+				"price" : 10
+			}
+		],
+		"status" : "D"
+	}
+	{
+		"_id" : 4,
+		"cust_id" : "A4",
+		"DOR" : ISODate("2023-01-29T00:00:00Z"),
+		"price" : 700,
+		"items" : [
+			{
+				"sku" : "oranges",
+				"qty" : 12,
+				"price" : 25
+			},
+			{
+				"sku" : "apples",
+				"qty" : 10,
+				"price" : 10
+			}
+		],
+		"status" : "D"
+	}
+
+1.Display total price per customer
+
+	> var map=function(){emit(this.cust_id,this.price);};
+
+	> var reduce=function(cust_id,price){return Array.sum(price);};
+
+	> db.orders.mapReduce(map,reduce,{out:'result1'})
+	{ "result" : "result1", "ok" : 1 }
+
+	> db.result1.find()
+	{ "_id" : "A3", "value" : 500 }
+	{ "_id" : "A2", "value" : 500 }
+	{ "_id" : "A1", "value" : 250 }
+	{ "_id" : "A4", "value" : 700 }
+
+2.Display total price per customer having status=D.
+
+	> var map=function(){emit(this.cust_id,this.price);};
+	> var reduce=function(cust_id,price){return Array.sum(price);};
+	
+	> db.orders.mapReduce(map,reduce,{out:'result', query:{status:"D"}})
+	{ "result" : "result", "ok" : 1 }
+	
+	> db.result.find()
+	{ "_id" : "A3", "value" : 500 }
+	{ "_id" : "A4", "value" : 700 }
+
+3.Display total price for status ='P'.
+
+	> var map=function(){emit(this.cust_id,this.price);};
+
+	> var reduce=function(cust_id,price){return Array.sum(price);};
+
+	> db.orders.mapReduce(map,reduce,{out:'result2', query:{status:"P"}})
+	{ "result" : "result2", "ok" : 1 }
+
+	> db.result2.find()
+	{ "_id" : "A2", "value" : 500 }
+	{ "_id" : "A1", "value" : 250 }
+
+4.Finding count of all keys in orders collection.
+
+	> var map=function(){for(var k in this){emit(k,{count:1})};};
+
+	> var reduce=function(keys,count){total=0;for(i in count){total+=count[i].count};return {countK:total};}
+
+	> db.orders.mapReduce(map,reduce,{out:'new3'})
+		{ "result" : "new3", "ok" : 1 }
+
+	> db.new3.find()
+		{ "_id" : "DOR", "value" : { "countK" : 4 } }
+		{ "_id" : "cust_id", "value" : { "countK" : 4 } }
+		{ "_id" : "_id", "value" : { "countK" : 4 } }
+		{ "_id" : "price", "value" : { "countK" : 4 } }
+		{ "_id" : "status", "value" : { "countK" : 4 } }
+		{ "_id" : "items", "value" : { "countK" : 4 } }
